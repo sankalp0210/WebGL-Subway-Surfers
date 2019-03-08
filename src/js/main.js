@@ -1,10 +1,11 @@
 var pl;
 var track = [];
 var wall = [];
+var train = [];
 var texture;
-var cyl;
+var coin = [];
 main();
- 
+
 function main() {
     const canvas = document.querySelector('#glcanvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -20,11 +21,13 @@ function main() {
         program: shaderProgram,
         attribLocations: {
           vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+          vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
           textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
         },
         uniformLocations: {
           projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
           modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+          normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
           uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
         },
     };
@@ -33,13 +36,21 @@ function main() {
     textureWall = loadTexture(gl, 'assets/wall3.jpg');
     texturePlayer = loadTexture(gl, 'assets/img.png');
     textureCoin = loadTexture(gl, 'assets/coin.png');
-    pl = new Cube(gl, [0.0, 1.0, 0.0],texturePlayer, [0.5, 0.5, 0.5]);
-    cyl = new Cylinder(gl, [0.0, 2.0, 0.0],textureCoin, [0.2, 0.2, 0.05]);
+    textureTrain1 = loadTexture(gl, 'assets/train.jpeg');
+    textureTrain2 = loadTexture(gl, 'assets/train2.png');
+    pl = new Player(gl, [0.0, 1.0, 5.0],texturePlayer);
+    coin.push(new Coin(gl, [0.0, 2.0, 0.0],textureCoin, [0.2, 0.2, 0.05]));
+    coin.push(new Coin(gl, [0.0, 2.0, 2.0],textureCoin, [0.2, 0.2, 0.05]));
+    coin.push(new Coin(gl, [0.0, 2.0, 4.0],textureCoin, [0.2, 0.2, 0.05]));
     track.push(new Track(gl, [-3.0, 0.0, 10.0], textureTrack));
     track.push(new Track(gl, [  0.0, 0.0, 10.0], textureTrack));
     track.push(new Track(gl, [ 3.0, 0.0, 10.0], textureTrack));
     wall.push(new Wall(gl, [-4.5, 2.5, 10.0], textureWall));
     wall.push(new Wall(gl, [ 4.5, 2.5, 10.0], textureWall));
+    train.push(new Train(gl, [ 1.5, 1.5, 0.0],textureTrain1, [1.0, 1.5, 8.0]));
+    train.push(new Train(gl, [-1.5, 1.5, 0.0],textureTrain2, [1.0, 1.5, 8.0]));
+    train.push(new Train(gl, [ 1.5, 1.5, -10.0],textureTrain2, [1.0, 1.5, 8.0]));
+    train.push(new Train(gl, [-1.5, 1.5, -10.0],textureTrain1, [1.0, 1.5, 8.0]));
     var then = 0;
 
     // Draw the scene repeatedly
@@ -47,8 +58,11 @@ function main() {
         now *= 0.001;  // convert to seconds
         const deltaTime = now - then;
         then = now;
-        Mousetrap.bind('up', function() { console.log('bt'); pl.pos[2] -= 0.1;})
-        Mousetrap.bind('down', function() { console.log('bt'); pl.pos[2] += 0.1;})
+        var val = [0.0, 0.0, 0.0];
+        Mousetrap.bind('up', function() { pl.move([0,0,-0.1])})
+        Mousetrap.bind('down', function() { pl.move([0,0,0.1])})
+        Mousetrap.bind('left', function() { pl.move([-1.5,0,0.0])})
+        Mousetrap.bind('right', function() { pl.move([1.5,0,0.0])})
         drawScene(gl, programInfo, deltaTime);
         requestAnimationFrame(render);
     }
@@ -73,24 +87,25 @@ function drawScene(gl, programInfo, deltaTime) {
     var viewProjectionMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-    mat4.translate(viewMatrix, viewMatrix, [0, pl.pos[1] + 1, pl.pos[2] + 10]);
+    mat4.translate(viewMatrix, viewMatrix, [0, pl.pos[1] + 0.5, pl.pos[2] + 5]);
     var cameraPosition = [
         viewMatrix[12],
         viewMatrix[13],
         viewMatrix[14],
     ];
     var up = [0, 1, 0];
-    mat4.lookAt(viewMatrix, cameraPosition, pl.pos, up);
+    mat4.lookAt(viewMatrix, cameraPosition, [0, pl.pos[1], pl.pos[2]], up);
 
     mat4.multiply(viewProjectionMatrix, projectionMatrix, viewMatrix);
-
-    cyl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
-    // pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
-    for(var i=0;i<track.length;i++)
-        track[i].draw(gl, viewProjectionMatrix, programInfo);
+    for(var i=0;i<coin.length;i++)
+        coin[i].draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     for(var i=0;i<wall.length;i++)
         wall[i].draw(gl, viewProjectionMatrix, programInfo);
-
+    for(var i=0;i<track.length;i++)
+        track[i].draw(gl, viewProjectionMatrix, programInfo);
+    for(var i=0;i<train.length;i++)
+        train[i].draw(gl, viewProjectionMatrix, programInfo);
+    pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
 }
 
 function loadTexture(gl, url) {

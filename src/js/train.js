@@ -1,4 +1,4 @@
-let trCube =  class {
+let Train =  class {
     constructor(gl, pos, texture, dimensions){
         const b = dimensions[0] /2;
         const h = dimensions[1] /2;
@@ -6,26 +6,110 @@ let trCube =  class {
         this.positionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.positionBuffer);
         this.positions = [
-            -b, -h,  l,
-             b,  h,  l,
+            // Front face
+            -b, -h, l,
+             b, -h, l,
+             b,  h, l,
+            -b,  h, l,
+            // back face
+            -b, -h,  -l,
+             b, -h,  -l,
+             b,  h,  -l,
+            -b,  h,  -l,
+            //right face
+             b, -h,  l,
              b, -h, -l,
+             b,  h,  l,
+             b,  h, -l,
+            // left face
+            -b, -h,  l,
+            -b, -h, -l,
+            -b,  h,  l,
             -b,  h, -l,
+            // top face
+            -b,  h,  l,
+            -b,  h, -l,
+             b,  h,  l,
+             b,  h, -l,
+            //bottom face
+            -b, -h,  l,
+            -b, -h, -l,
+             b, -h,  l,
+             b, -h, -l
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
         
         this.normalBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
         this.vertexNormals = [
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
+            // Front
+            0.0,  0.0,  1.0,
+            0.0,  0.0,  1.0,
+            0.0,  0.0,  1.0,
+            0.0,  0.0,  1.0,
+
+            // Back
+            0.0,  0.0, -1.0,
+            0.0,  0.0, -1.0,
+            0.0,  0.0, -1.0,
+            0.0,  0.0, -1.0,
+
+            // Top
+            0.0,  1.0,  0.0,
+            0.0,  1.0,  0.0,
+            0.0,  1.0,  0.0,
+            0.0,  1.0,  0.0,
+
+            // Bottom
+            0.0, -1.0,  0.0,
+            0.0, -1.0,  0.0,
+            0.0, -1.0,  0.0,
+            0.0, -1.0,  0.0,
+
+            // Right
+            1.0,  0.0,  0.0,
+            1.0,  0.0,  0.0,
+            1.0,  0.0,  0.0,
+            1.0,  0.0,  0.0,
+
+            // Left
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0,
+            -1.0,  0.0,  0.0
         ];
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertexNormals), gl.STATIC_DRAW);
+
 
         this.textureBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
         this.textureCoordinates = [
+            // Front
+            0.0,  0.0,
+            1.0,  0.0,
+            1.0,  1.0,
+            0.0,  1.0,
+            // Back
+            0.0,  0.0,
+            1.0,  0.0,
+            1.0,  1.0,
+            0.0,  1.0,
+            // Top
+            0.0,  0.0,
+            1.0,  0.0,
+            1.0,  1.0,
+            0.0,  1.0,
+            // Bottom
+            0.0,  0.0,
+            1.0,  0.0,
+            1.0,  1.0,
+            0.0,  1.0,
+            // Right
+            0.0,  0.0,
+            1.0,  0.0,
+            1.0,  1.0,
+            0.0,  1.0,
+            // Left
             0.0,  0.0,
             1.0,  0.0,
             1.0,  1.0,
@@ -37,6 +121,11 @@ let trCube =  class {
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
         this.indices = [
             0,  1,  2,      0,  2,  3,
+            4,  5,  6,      4,  6,  7,
+            8,  9,  10,     9, 10,  11,
+            12, 13, 14,    13, 14,  15,
+            16, 17, 18,    17, 18,  19,
+            20, 21, 22,    21, 22,  23
         ];
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(this.indices), gl.STATIC_DRAW);
         
@@ -86,7 +175,7 @@ let trCube =  class {
             gl.enableVertexAttribArray(
                 programInfo.attribLocations.vertexPosition);
         }
-
+      
         {
             const numComponents = 2;
             const type = gl.FLOAT;
@@ -96,9 +185,8 @@ let trCube =  class {
             gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer.textureCoord);
             gl.vertexAttribPointer(programInfo.attribLocations.textureCoord,
                 numComponents, type, normalize, stride, offset);
-                gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+            gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
         }
-            
         const normalMatrix = mat4.create();
         mat4.invert(normalMatrix, modelViewMatrix);
         mat4.transpose(normalMatrix, normalMatrix);
@@ -113,7 +201,7 @@ let trCube =  class {
                 numComponents, type, normalize, stride, offset);
             gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
         }
-      
+        
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffer.indices);
       
         gl.useProgram(programInfo.program);
@@ -132,7 +220,7 @@ let trCube =  class {
             normalMatrix);
       
         {
-          const vertexCount = 6;
+          const vertexCount = 36;
           const type = gl.UNSIGNED_SHORT;
           const offset = 0;
           gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);

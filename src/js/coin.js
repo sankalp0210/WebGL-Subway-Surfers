@@ -1,4 +1,4 @@
-let Cylinder =  class {
+let Coin =  class {
     constructor(gl, pos, texture, dimensions){
         const n = 50;
         const deg = 2*3.1415926/n;
@@ -63,8 +63,58 @@ let Cylinder =  class {
             this.positions[9*i + 7] = y1 = (r2*Math.sin(o));
             this.positions[9*i + 8] = z2;
         }
-        
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.positions), gl.STATIC_DRAW);
+
+        this.normalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.normalBuffer);
+        this.vertexNormals = [4*9*n+100];
+        for(var i=0;i<n;i++){
+            this.vertexNormals[9*i + 0] = 0.0;
+            this.vertexNormals[9*i + 1] = 0.0;
+            this.vertexNormals[9*i + 2] = 1.0;
+            this.vertexNormals[9*i + 3] = 0.0;
+            this.vertexNormals[9*i + 4] = 0.0;
+            this.vertexNormals[9*i + 5] = 1.0;
+            this.vertexNormals[9*i + 6] = 0.0;
+            this.vertexNormals[9*i + 7] = 0.0;
+            this.vertexNormals[9*i + 8] = 1.0;
+        }
+        for(var i=n;i<2*n;i++){
+            this.vertexNormals[9*i + 0] = 0.0;
+            this.vertexNormals[9*i + 1] = 0.0;
+            this.vertexNormals[9*i + 2] = -1.0;
+            this.vertexNormals[9*i + 3] = 0.0;
+            this.vertexNormals[9*i + 4] = 0.0;
+            this.vertexNormals[9*i + 5] = -1.0;
+            this.vertexNormals[9*i + 6] = 0.0;
+            this.vertexNormals[9*i + 7] = 0.0;
+            this.vertexNormals[9*i + 8] = -1.0;
+        }
+
+        for(var i=2*n;i<3*n;i++){
+            this.vertexNormals[9*i + 0] = 0.0;
+            this.vertexNormals[9*i + 1] = 0.0;
+            this.vertexNormals[9*i + 2] = -1.0;
+            this.vertexNormals[9*i + 3] = 0.0;
+            this.vertexNormals[9*i + 4] = 0.0;
+            this.vertexNormals[9*i + 5] = -1.0;
+            this.vertexNormals[9*i + 6] = 0.0;
+            this.vertexNormals[9*i + 7] = 0.0;
+            this.vertexNormals[9*i + 8] = -1.0;
+        }
+        for(var i=3*n;i<4*n;i++){
+            this.vertexNormals[9*i + 0] = 0.0;
+            this.vertexNormals[9*i + 1] = 0.0;
+            this.vertexNormals[9*i + 2] = -1.0;
+            this.vertexNormals[9*i + 3] = 0.0;
+            this.vertexNormals[9*i + 4] = 0.0;
+            this.vertexNormals[9*i + 5] = -1.0;
+            this.vertexNormals[9*i + 6] = 0.0;
+            this.vertexNormals[9*i + 7] = 0.0;
+            this.vertexNormals[9*i + 8] = -1.0;
+        }
+        
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertexNormals), gl.STATIC_DRAW);
 
         this.textureBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.textureBuffer);
@@ -98,11 +148,11 @@ let Cylinder =  class {
             this.textureCoordinates[6*i + 4] = 0.2;
             this.textureCoordinates[6*i + 5] = 0.2;
         }
-
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.textureCoordinates), gl.STATIC_DRAW);
         
         this.buffer = {
             position: this.positionBuffer,
+            normal:this.normalBuffer,
             textureCoord: this.textureBuffer,
         }
 
@@ -145,6 +195,21 @@ let Cylinder =  class {
             gl.enableVertexAttribArray(
                 programInfo.attribLocations.vertexPosition);
         }
+
+        const normalMatrix = mat4.create();
+        mat4.invert(normalMatrix, modelViewMatrix);
+        mat4.transpose(normalMatrix, normalMatrix);
+        {
+            const numComponents = 3;
+            const type = gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset = 0;
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer.normal);
+            gl.vertexAttribPointer(programInfo.attribLocations.vertexNormal,
+                numComponents, type, normalize, stride, offset);
+            gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
+        }
       
         {
             const numComponents = 2;
@@ -157,7 +222,7 @@ let Cylinder =  class {
                 numComponents, type, normalize, stride, offset);
             gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
         }
-      
+
         // gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.buffer.indices);
 
         gl.useProgram(programInfo.program);
@@ -170,7 +235,11 @@ let Cylinder =  class {
             programInfo.uniformLocations.modelViewMatrix,
             false,
             modelViewMatrix);
-      
+
+        gl.uniformMatrix4fv(
+            programInfo.uniformLocations.normalMatrix,
+            false,
+            normalMatrix);
         {
           const vertexCount = 36;
           const type = gl.UNSIGNED_SHORT;
