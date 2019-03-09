@@ -4,6 +4,9 @@ var wall = [];
 var train = [];
 var texture;
 var coin = [];
+var coins = 0;
+var gameOver = 0;
+var grayScale = 0;
 main();
 
 function main() {
@@ -16,19 +19,21 @@ function main() {
     }
 
     const sh = new shader();
-    const shaderProgram = sh.initShaderProgram(gl);
-    const programInfo = {
-        program: shaderProgram,
+    var shaderProgram1 = sh.initShaderProgram(gl,0);
+    var shaderProgram2 = sh.initShaderProgram(gl,1);
+
+    var programInfo = {
+        program: shaderProgram1,
         attribLocations: {
-          vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-          vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
-          textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
+          vertexPosition: gl.getAttribLocation(shaderProgram1, 'aVertexPosition'),
+          vertexNormal: gl.getAttribLocation(shaderProgram1, 'aVertexNormal'),
+          textureCoord: gl.getAttribLocation(shaderProgram1, 'aTextureCoord'),
         },
         uniformLocations: {
-          projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-          modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-          normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-          uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
+          projectionMatrix: gl.getUniformLocation(shaderProgram1, 'uProjectionMatrix'),
+          modelViewMatrix: gl.getUniformLocation(shaderProgram1, 'uModelViewMatrix'),
+          normalMatrix: gl.getUniformLocation(shaderProgram1, 'uNormalMatrix'),
+          uSampler: gl.getUniformLocation(shaderProgram1, 'uSampler'),
         },
     };
 
@@ -38,37 +43,101 @@ function main() {
     textureCoin = loadTexture(gl, 'assets/coin.png');
     textureTrain1 = loadTexture(gl, 'assets/train.jpeg');
     textureTrain2 = loadTexture(gl, 'assets/train2.png');
-    pl = new Player(gl, [0.0, 1.0, 5.0],texturePlayer);
-    coin.push(new Coin(gl, [0.0, 2.0, 0.0],textureCoin, [0.2, 0.2, 0.05]));
-    coin.push(new Coin(gl, [0.0, 2.0, 2.0],textureCoin, [0.2, 0.2, 0.05]));
-    coin.push(new Coin(gl, [0.0, 2.0, 4.0],textureCoin, [0.2, 0.2, 0.05]));
+    pl = new Player(gl, [0.0, 1.0, 20.0],texturePlayer);
+    coin.push(new Coin(gl, [0.0, 1.2, 0.0],textureCoin, [0.2, 0.2, 0.05]));
+    coin.push(new Coin(gl, [0.0, 1.2, 2.0],textureCoin, [0.2, 0.2, 0.05]));
+    coin.push(new Coin(gl, [0.0, 1.2, 4.0],textureCoin, [0.2, 0.2, 0.05]));
     track.push(new Track(gl, [-3.0, 0.0, 10.0], textureTrack));
     track.push(new Track(gl, [  0.0, 0.0, 10.0], textureTrack));
     track.push(new Track(gl, [ 3.0, 0.0, 10.0], textureTrack));
     wall.push(new Wall(gl, [-4.5, 2.5, 10.0], textureWall));
     wall.push(new Wall(gl, [ 4.5, 2.5, 10.0], textureWall));
-    train.push(new Train(gl, [ 1.5, 1.5, 0.0],textureTrain1, [1.0, 1.5, 8.0]));
-    train.push(new Train(gl, [-1.5, 1.5, 0.0],textureTrain2, [1.0, 1.5, 8.0]));
-    train.push(new Train(gl, [ 1.5, 1.5, -10.0],textureTrain2, [1.0, 1.5, 8.0]));
-    train.push(new Train(gl, [-1.5, 1.5, -10.0],textureTrain1, [1.0, 1.5, 8.0]));
+    train.push(new Train(gl, [ 2.5, 1.0, 0.0],textureTrain1, [1.5, 1.5, 8.0]));
+    train.push(new Train(gl, [-2.5, 1.0, 0.0],textureTrain2, [1.5, 1.5, 8.0]));
+    // train.push(new Train(gl, [ 2.5, 1.0, -10.0],textureTrain2, [1.5, 1.5, 8.0]));
+    // train.push(new Train(gl, [-2.5, 1.0, -10.0],textureTrain1, [1.5, 1.5, 8.0]));
+    train.push(new Train(gl, [0, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
     var then = 0;
 
     // Draw the scene repeatedly
     function render(now) {
+        console.log(pl.pos, track[0].pos);
         now *= 0.001;  // convert to seconds
         const deltaTime = now - then;
         then = now;
-        var val = [0.0, 0.0, 0.0];
-        Mousetrap.bind('up', function() { pl.move([0,0,-0.1])})
-        Mousetrap.bind('down', function() { pl.move([0,0,0.1])})
-        Mousetrap.bind('left', function() { pl.move([-1.5,0,0.0])})
-        Mousetrap.bind('right', function() { pl.move([1.5,0,0.0])})
+        Mousetrap.bind('left', function() {if(pl.left == 0) {pl.left = 1;pl.right=-1;}})
+        Mousetrap.bind('right', function() {if(pl.right == 0) {pl.right = 1;pl.left = -1;}})
+        Mousetrap.bind('space', function() {if(pl.jump == 0) pl.jump = 1;})
+        Mousetrap.bind('g', function() {
+            if(grayScale == 0) {
+                grayScale = 1;
+                programInfo = {
+                    program: shaderProgram2,
+                    attribLocations: {
+                      vertexPosition: gl.getAttribLocation(shaderProgram2, 'aVertexPosition'),
+                      vertexNormal: gl.getAttribLocation(shaderProgram2, 'aVertexNormal'),
+                      textureCoord: gl.getAttribLocation(shaderProgram2, 'aTextureCoord'),
+                    },
+                    uniformLocations: {
+                      projectionMatrix: gl.getUniformLocation(shaderProgram2, 'uProjectionMatrix'),
+                      modelViewMatrix: gl.getUniformLocation(shaderProgram2, 'uModelViewMatrix'),
+                      normalMatrix: gl.getUniformLocation(shaderProgram2, 'uNormalMatrix'),
+                      uSampler: gl.getUniformLocation(shaderProgram2, 'uSampler'),
+                    },
+                };
+            }
+            else{
+                grayScale = 0;
+                programInfo = {
+                    program: shaderProgram1,
+                    attribLocations: {
+                      vertexPosition: gl.getAttribLocation(shaderProgram1, 'aVertexPosition'),
+                      vertexNormal: gl.getAttribLocation(shaderProgram1, 'aVertexNormal'),
+                      textureCoord: gl.getAttribLocation(shaderProgram1, 'aTextureCoord'),
+                    },
+                    uniformLocations: {
+                      projectionMatrix: gl.getUniformLocation(shaderProgram1, 'uProjectionMatrix'),
+                      modelViewMatrix: gl.getUniformLocation(shaderProgram1, 'uModelViewMatrix'),
+                      normalMatrix: gl.getUniformLocation(shaderProgram1, 'uNormalMatrix'),
+                      uSampler: gl.getUniformLocation(shaderProgram1, 'uSampler'),
+                    },
+                };
+            }
+        })
+        if(!gameOver)
+            pl.move();
+        // console.log(pl.pos);
+        checkColission();
         drawScene(gl, programInfo, deltaTime);
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 }
 
+function checkColission(){
+    for(var i=0;i<train.length;i++){
+        if(detectColission(pl.pos, [0.5, 0.5, 0.5], train[i].pos, [1.5, 1.0, 8.0])){
+            if(pl.pos[1] > train[i].pos[1] + 0.1){
+                pl.jump = 0;
+                pl.bt(2.75-pl.pos[1]);
+                break;
+            }
+        }
+    }
+    for(var i=0;i<coin.length;i++){
+        if(detectColission(pl.pos, [0.5, 0.6, 0.5], coin[i].pos, [0.2, 0.2, 0.2])){
+            coin[i].pos[2] += 100.0;
+            coins+=1;
+            console.log(coins);
+            break;
+        }
+    }
+}
+function detectColission(obj1, dim1, obj2, dim2){
+    return (Math.abs(obj1[0] - obj2[0]) * 2 < (dim1[0] + dim2[0])) &&
+           (Math.abs(obj1[1] - obj2[1]) * 2 < (dim1[1] + dim2[1])) &&
+           (Math.abs(obj1[2] - obj2[2]) * 2 < (dim1[2] + dim2[2])) ;
+}
 function drawScene(gl, programInfo, deltaTime) {
     gl.clearColor(13/256.0, 20/256.0, 23/256.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
@@ -81,13 +150,13 @@ function drawScene(gl, programInfo, deltaTime) {
     const fieldOfView = 45 * Math.PI / 180;   // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const zNear = 0.1;
-    const zFar = 500.0;
+    const zFar = 100.0;
     const projectionMatrix = mat4.create();
     var viewMatrix = mat4.create();
     var viewProjectionMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-    mat4.translate(viewMatrix, viewMatrix, [0, pl.pos[1] + 0.5, pl.pos[2] + 5]);
+    mat4.translate(viewMatrix, viewMatrix, [0, pl.pos[1] + 1.5, pl.pos[2] + 5]);
     var cameraPosition = [
         viewMatrix[12],
         viewMatrix[13],
@@ -101,8 +170,8 @@ function drawScene(gl, programInfo, deltaTime) {
         coin[i].draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     for(var i=0;i<wall.length;i++)
         wall[i].draw(gl, viewProjectionMatrix, programInfo);
-    for(var i=0;i<track.length;i++)
-        track[i].draw(gl, viewProjectionMatrix, programInfo);
+    // for(var i=0;i<track.length;i++)
+    //     track[i].draw(gl, viewProjectionMatrix, programInfo);
     for(var i=0;i<train.length;i++)
         train[i].draw(gl, viewProjectionMatrix, programInfo);
     pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);

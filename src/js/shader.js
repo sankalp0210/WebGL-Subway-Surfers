@@ -1,6 +1,6 @@
 let shader = class{
 	constructor(){
- 
+
 		// Vertex shader program
 		this.vsSource = `
 			attribute vec4 aVertexPosition;
@@ -42,11 +42,30 @@ let shader = class{
 				gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
 			}
 		`;
+		this.fsSource1 = `
+			varying highp vec2 vTextureCoord;
+			varying highp vec3 vLighting;
+
+			uniform sampler2D uSampler;
+
+			void main(void) {
+				highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+				gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
+				precision highp float;
+				vec4 color = texture2D(uSampler, vTextureCoord);
+				float gray = dot(color.rgb,vec3(0.299,0.587,0.114));
+				gl_FragColor = vec4(vec3(gray),1.0);
+			}
+		`;
 	}
 
-	initShaderProgram(gl) {
+	initShaderProgram(gl, val) {
 		const vertexShader = this.loadShader(gl, gl.VERTEX_SHADER, this.vsSource);
-		const fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, this.fsSource);
+		
+		var fragmentShader= this.loadShader(gl, gl.FRAGMENT_SHADER, this.fsSource);
+		if(val == 1)
+			fragmentShader = this.loadShader(gl, gl.FRAGMENT_SHADER, this.fsSource1);
+
 
 		// Create the shader program
 		const shaderProgram = gl.createProgram();
