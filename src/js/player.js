@@ -115,6 +115,12 @@ let Player =  class {
             this.obj[i].pos[1] += val;
         }
     }
+    bt2(val){
+        this.pos[2] += val;
+        for (var i=0;i<this.obj.length;i++){
+            this.obj[i].pos[2] += val;
+        }
+    }
     draw(gl, matrix, programInfo){
         for (var i=0;i<this.obj.length;i++){
             this.obj[i].draw(gl, matrix, programInfo);

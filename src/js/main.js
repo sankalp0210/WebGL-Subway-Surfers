@@ -9,6 +9,8 @@ var gameOver = 0;
 var grayScale = 0;
 var jetpack;
 var boots;
+var dog;
+var police;
 main();
 
 function main() {
@@ -61,12 +63,19 @@ function main() {
     // train.push(new Train(gl, [ 2.5, 1.0, -10.0],textureTrain2, [1.5, 1.5, 15.0]));
     // train.push(new Train(gl, [-2.5, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
     train.push(new Train(gl, [0, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
-    jetpack = new Jetpack(gl, [0.0, 1.0, 10.0],textureJet1, textureJet2);
+    jetpack = new Jetpack(gl, [0.0, 1.0, -100.0],textureJet1, textureJet2);
     boots = new Boot(gl, [0.0, 1.0, 15.0],textureJet2, textureJet2);
+    dog = new Dog(gl, [1.0, 1.0, 22.0],texturePlayer);
+    police = new Police(gl, [0.0, 1.0, 18.0],texturePlayer);
     var then = 0;
 
     // Draw the scene repeatedly
     function render(now) {
+        police.bt(pl.pos[0] - police.pos[0]);
+        police.bt2(pl.pos[2] + 1 - police.pos[2]);
+        dog.bt(pl.pos[0] + 0.5 - dog.pos[0]);
+        dog.bt2(pl.pos[2] + 1 - dog.pos[2])
+        console.log(police.pos, pl.pos)
         track[0].move(pl.pos[2]+10);
         track[1].move(pl.pos[2]+10);
         track[2].move(pl.pos[2]+10);
@@ -117,7 +126,6 @@ function main() {
             }
         })
         checkColission();
-        console.log(pl.pos);
         if(!gameOver)
             pl.move();
         drawScene(gl, programInfo, deltaTime);
@@ -139,10 +147,26 @@ function checkColission(){
                 pl.bt(2.75-pl.pos[1]);
                 pl.up = 1;
             }
+            else if(pl.pos[2] > train[i].pos[2] + 6.0){
+                pl.bt2((train[i].pos[2] + 7.5 + 0.3) - pl.pos[2]);
+                pl.slowTime = 1;
+                gameOver = 1;
+            }
+            else if(pl.pos[0] > train[i].pos[0] + 0.5){
+                pl.right = 1;
+                pl.left = -1;
+                if(pl.slowTime > 0)
+                    gameOver = 1;
+                pl.slowTime = 1;
+            }
+            else if(pl.pos[0] < train[i].pos[0] - 0.5){
+                pl.left = 1; 
+                pl.right = -1;
+                if(pl.slowTime > 0)
+                    gameOver = 1;
+                pl.slowTime = 1;
+            }
             break;
-            // if(pl.pos[2] > train[i].pos[2] + 6.0){
-
-            // }
         }
     }
     if(flag == 0 && pl.up == 1){
@@ -159,7 +183,6 @@ function checkColission(){
         }
     }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], jetpack.pos, [0.3, 0,3, 0.1])){
-        console.log('bt');
         pl.jetpack = 1;
         pl.maxHeight = 1.0;
         pl.jetTime = 1;
@@ -169,7 +192,6 @@ function checkColission(){
             jetpack.obj[i].pos[2] -= 200.0;
     }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], boots.pos, [0.3, 0,3, 0.1])){
-        console.log('bt111');
         pl.maxHeight = 0.7;
         pl.bootTime = 1;
         boots.pos[2] -= 100.0;
@@ -222,6 +244,10 @@ function drawScene(gl, programInfo, deltaTime) {
     pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     jetpack.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     boots.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+    dog.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+    if(pl.slowTime > 0){
+        police.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+    }
 }
 
 function loadTexture(gl, url) {
