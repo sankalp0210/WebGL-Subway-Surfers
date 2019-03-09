@@ -2,6 +2,8 @@ var pl;
 var track = [];
 var wall = [];
 var train = [];
+var barricade1;
+var barricade2;
 var texture;
 var coin = [];
 var coins = 0;
@@ -12,7 +14,8 @@ var boots;
 var dog;
 var police;
 main();
-
+// 2.7 for barricade 1
+// 2.9 for barricade 2
 function main() {
     const canvas = document.querySelector('#glcanvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -49,6 +52,8 @@ function main() {
     textureTrain2 = loadTexture(gl, 'assets/train2.png');
     textureJet1 = loadTexture(gl, 'assets/jetpack1.jpg');
     textureJet2 = loadTexture(gl, 'assets/jetpack2.jpg');
+    textureBarricade1 = loadTexture(gl, 'assets/barricade1.jpeg');
+    textureBarricade2 = loadTexture(gl, 'assets/barricade2.png');
     pl = new Player(gl, [0.0, 1.0, 20.0],texturePlayer);
     coin.push(new Coin(gl, [0.0, 1.2, 0.0],textureCoin, [0.2, 0.2, 0.05]));
     coin.push(new Coin(gl, [0.0, 1.2, 2.0],textureCoin, [0.2, 0.2, 0.05]));
@@ -58,24 +63,29 @@ function main() {
     track.push(new Track(gl, [ 3.0, 0.0, 10.0], textureTrack));
     wall.push(new Wall(gl, [-4.5, 2.5, 10.0], textureWall));
     wall.push(new Wall(gl, [ 4.5, 2.5, 10.0], textureWall));
+    barricade1 = new Cube(gl, [2.7, 0.5, -50],textureBarricade1, [1.0, 0.6, 0.05]);
+    barricade2 = new Cube(gl, [2.9, 0.5, -35],textureBarricade2, [2.0, 1.8, 0.1]);
     train.push(new Train(gl, [ 2.5, 1.0, 0.0],textureTrain1, [1.5, 1.5, 15.0]));
     train.push(new Train(gl, [-2.5, 1.0, 0.0],textureTrain2, [1.5, 1.5, 15.0]));
     // train.push(new Train(gl, [ 2.5, 1.0, -10.0],textureTrain2, [1.5, 1.5, 15.0]));
     // train.push(new Train(gl, [-2.5, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
     train.push(new Train(gl, [0, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
     jetpack = new Jetpack(gl, [0.0, 1.0, -100.0],textureJet1, textureJet2);
-    boots = new Boot(gl, [0.0, 1.0, 15.0],textureJet2, textureJet2);
+    boots = new Boot(gl, [0.0, 1.0, 10.0],textureJet2, textureJet2);
     dog = new Dog(gl, [1.0, 1.0, 22.0],texturePlayer);
-    police = new Police(gl, [0.0, 1.0, 18.0],texturePlayer);
+    police = new Police(gl, [0.0, 1.0, 22.0],texturePlayer);
     var then = 0;
 
     // Draw the scene repeatedly
     function render(now) {
+        if(pl.pos[2] + 10 < barricade1.pos[2])
+            barricade1.pos[2]-=100;
+        if(pl.pos[2] + 10 < barricade2.pos[2])
+            barricade2.pos[2]-=100;
         police.bt(pl.pos[0] - police.pos[0]);
         police.bt2(pl.pos[2] + 1 - police.pos[2]);
         dog.bt(pl.pos[0] + 0.5 - dog.pos[0]);
         dog.bt2(pl.pos[2] + 1 - dog.pos[2])
-        console.log(police.pos, pl.pos)
         track[0].move(pl.pos[2]+10);
         track[1].move(pl.pos[2]+10);
         track[2].move(pl.pos[2]+10);
@@ -170,7 +180,6 @@ function checkColission(){
         }
     }
     if(flag == 0 && pl.up == 1){
-        console.log('ultimate bt')
         pl.up = 0;
         pl.jump = -1;
     }
@@ -191,13 +200,24 @@ function checkColission(){
         for(var i = 0;i<jetpack.obj.length;i++)
             jetpack.obj[i].pos[2] -= 200.0;
     }
-    if(detectColission(pl.pos, [0.5, 0.5, 0.2], boots.pos, [0.3, 0,3, 0.1])){
+    if(detectColission(pl.pos, [0.5, 0.5, 0.2], boots.pos, [0.3, 0.3, 0.1])){
         pl.maxHeight = 0.7;
         pl.bootTime = 1;
         boots.pos[2] -= 100.0;
         for(var i = 0;i<boots.obj.length;i++)
             boots.obj[i].pos[2] -= 100.0;
     }
+    if(detectColission(pl.pos, [0.5, 0.5, 0.2], barricade1.pos, [1.0, 0.6, 0.05])){
+        barricade1.pos[2] -= 100.0;
+        if(pl.slowTime > 0)
+            gameOver = 1;
+        pl.slowTime = 1;
+    }
+    if(detectColission(pl.pos, [0.5, 0.5, 0.2], barricade2.pos, [2.0, 1.8, 0.1])){
+        pl.slowTime = 1;
+        gameOver = 1;
+    }
+
 }
 
 function detectColission(obj1, dim1, obj2, dim2){
@@ -241,6 +261,9 @@ function drawScene(gl, programInfo, deltaTime) {
         track[i].draw(gl, viewProjectionMatrix, programInfo);
     for(var i=0;i<train.length;i++)
         train[i].draw(gl, viewProjectionMatrix, programInfo);
+        
+    barricade1.draw(gl, viewProjectionMatrix, programInfo);
+    barricade2.draw(gl, viewProjectionMatrix, programInfo);
     pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     jetpack.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     boots.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
