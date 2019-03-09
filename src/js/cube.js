@@ -114,7 +114,7 @@ let Cube =  class {
         mat4.rotate(modelViewMatrix, 
                     modelViewMatrix, 
                     this.rotation, 
-                    [1, 1, 1]);
+                    [1, 0, 0]);
         {
             const numComponents = 3;
             const type = gl.FLOAT;

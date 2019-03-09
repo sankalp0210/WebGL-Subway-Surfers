@@ -43,7 +43,10 @@ function main() {
           uSampler: gl.getUniformLocation(shaderProgram1, 'uSampler'),
         },
     };
-
+    textureHair = loadTexture(gl, 'assets/hair.jpg');
+    textureBody = loadTexture(gl, 'assets/body.jpg');
+    textureArms = loadTexture(gl, 'assets/skin.png');
+    textureLegs = loadTexture(gl, 'assets/legs.png');
     textureTrack = loadTexture(gl, 'assets/track2.jpeg');
     textureWall = loadTexture(gl, 'assets/wall3.jpg');
     texturePlayer = loadTexture(gl, 'assets/img.png');
@@ -54,7 +57,7 @@ function main() {
     textureJet2 = loadTexture(gl, 'assets/jetpack2.jpg');
     textureBarricade1 = loadTexture(gl, 'assets/barricade1.jpeg');
     textureBarricade2 = loadTexture(gl, 'assets/barricade2.png');
-    pl = new Player(gl, [0.0, 1.0, 20.0],texturePlayer);
+    pl = new Player(gl, [0.0, 1.0, 20.0],textureHair, textureBody, textureArms, textureLegs);
     coin.push(new Coin(gl, [0.0, 1.2, 0.0],textureCoin, [0.2, 0.2, 0.05]));
     coin.push(new Coin(gl, [0.0, 1.2, 2.0],textureCoin, [0.2, 0.2, 0.05]));
     coin.push(new Coin(gl, [0.0, 1.2, 4.0],textureCoin, [0.2, 0.2, 0.05]));
@@ -69,7 +72,7 @@ function main() {
     train.push(new Train(gl, [-2.5, 1.0, 0.0],textureTrain2, [1.5, 1.5, 15.0]));
     // train.push(new Train(gl, [ 2.5, 1.0, -10.0],textureTrain2, [1.5, 1.5, 15.0]));
     // train.push(new Train(gl, [-2.5, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
-    train.push(new Train(gl, [0, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
+    train.push(new Train(gl, [0, 1.0, -20.0],textureTrain1, [1.5, 1.5, 15.0]));
     jetpack = new Jetpack(gl, [0.0, 1.0, -100.0],textureJet1, textureJet2);
     boots = new Boot(gl, [0.0, 1.0, 10.0],textureJet2, textureJet2);
     dog = new Dog(gl, [1.0, 1.0, 22.0],texturePlayer);
@@ -168,12 +171,14 @@ function checkColission(){
                 if(pl.slowTime > 0)
                     gameOver = 1;
                 pl.slowTime = 1;
+                pl.strideFor = 0.1;
             }
             else if(pl.pos[0] < train[i].pos[0] - 0.5){
                 pl.left = 1; 
                 pl.right = -1;
                 if(pl.slowTime > 0)
                     gameOver = 1;
+                pl.strideFor = 0.1;
                 pl.slowTime = 1;
             }
             break;
@@ -211,6 +216,7 @@ function checkColission(){
         barricade1.pos[2] -= 100.0;
         if(pl.slowTime > 0)
             gameOver = 1;
+        pl.strideFor = 0.1;
         pl.slowTime = 1;
     }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], barricade2.pos, [2.0, 1.8, 0.1])){
@@ -267,9 +273,9 @@ function drawScene(gl, programInfo, deltaTime) {
     pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     jetpack.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     boots.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
-    dog.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+    // dog.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     if(pl.slowTime > 0){
-        police.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+        // police.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     }
 }
 
