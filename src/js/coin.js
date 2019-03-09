@@ -247,7 +247,7 @@ let Coin =  class {
         //   gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
             gl.drawArrays(gl.TRIANGLES, 0, this.positions.length / 3);
         }
-        this.rotation += deltaTime;
+        this.rotation += 2*deltaTime;
 
     }
 }

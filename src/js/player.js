@@ -4,13 +4,20 @@ let Player =  class {
         this.left = 0;
         this.right = 0;
         this.moveX = 2.2;
-        this.strideFor = 0.3;
+        this.strideFor = 0.1;
         this.strideHor = 0.2;
-        this.gravity = 0.1;
+        this.gravity = 0.05;
         this.incHeight = 0;
         this.jump = 0;
         this.jetpack = 0;
-        this.maxHeight = 3.0;
+        this.maxHeight = 0.5;
+        this.slowTime = 1;
+        this.maxSlowTime = 100;
+        this.jetTime = 0;
+        this.maxJetTime = 400;
+        this.bootTime = 0;
+        this.up = 0;
+        this.maxBootTime = 400;
         this.obj = [];
         // body
         this.obj.push(new Cube(gl, [pos[0],pos[1],pos[2]],texture, [0.5, 0.5, 0.5]));
@@ -24,27 +31,56 @@ let Player =  class {
         this.obj.push(new Cube(gl, [pos[0],pos[1]+0.4,pos[2]],texture, [0.3, 0.3, 0.3]));
     };
     move(){
+ 
+        if(this.slowTime > 0)
+            this.slowTime += 1;
+        if(this.slowTime > this.maxSlowTime){
+            this.slowTime = 0;
+            this.strideFor = 0.2;
+        }
+
+        if(this.jetTime > 0){
+            this.jetTime += 1;
+            // console.log(this.jetTime);
+        }
+        if(this.jetTime >= this.maxJetTime){
+            this.jetTime = 0;
+            this.maxHeight = 0.5;
+            this.jump = -1;
+            this.jetpack = 0;
+        }
+        if(this.bootTime > 0)
+            this.bootTime += 1;
+        if(this.bootTime > this.maxBootTime){
+            this.bootTime = 0;
+            this.maxHeight = 0.5;
+        }
+
         var xInc = 0, yInc = 0, zInc = 0;
-        // console.log(this.jump);
         zInc = -this.strideFor;
         if(this.left == 1)
-        xInc = -this.strideHor;
+            xInc = -this.strideHor;
         if(this.right == 1)
-        xInc = this.strideHor;
+            xInc = this.strideHor;
+
         if(this.jump){
             this.incHeight += (this.gravity*this.jump);
         }
-        yInc += this.incHeight;
         // up down movement
-        if(this.pos[1] >= this.maxHeight){
+        if(this.incHeight >= this.maxHeight){
             this.jump = -1;
+            if(this.jetpack==1)
+            this.jump = 0;
             this.incHeight = 0;
-            console.log('bt');
         }
         if(this.pos[1] < 1.0){
             this.jump = 0;
             this.incHeight = 0;
-            yInc = 1.0 - pl.pos[1];
+            yInc = 1.0 - this.pos[1];
+        }
+        yInc += this.incHeight;
+        if(this.up == 1){
+            yInc = 2.75 - this.pos[1];
         }
         // increment
         this.pos[0] += xInc;
@@ -74,7 +110,7 @@ let Player =  class {
         }
     }
     bt(val){
-        pl.pos[1] += val;
+        this.pos[1] += val;
         for (var i=0;i<this.obj.length;i++){
             this.obj[i].pos[1] += val;
         }
