@@ -7,6 +7,11 @@ let Boot =  class {
     };
     move(val){
         if(this.pos[2] > val){
+            let fl = Math.random()*3;
+            let x = 0;
+            if(fl < 1) x = -2.2;
+            else if (fl < 2) x = 2.2;
+            this.pos[0] = x;
             this.pos[2] -= 100;
             for (var i=0;i<this.obj.length;i++){
                 this.obj[i].pos[2] -= 100;

@@ -6,6 +6,7 @@ var barricade1;
 var barricade2;
 var texture;
 var coin = [];
+var score = 0;
 var coins = 0;
 var gameOver = 0;
 var grayScale = 0;
@@ -14,8 +15,6 @@ var boots;
 var dog;
 var police;
 main();
-// 2.7 for barricade 1
-// 2.9 for barricade 2
 function main() {
     const canvas = document.querySelector('#glcanvas');
     const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -66,35 +65,89 @@ function main() {
     textureJet2 = loadTexture(gl, 'assets/jetpack2.jpg');
     textureBarricade1 = loadTexture(gl, 'assets/barricade1.jpeg');
     textureBarricade2 = loadTexture(gl, 'assets/barricade2.png');
-    pl = new Player(gl, [0.0, 1.0, 20.0],textureHair, textureBody, textureArms, textureLegs);
-    police = new Police(gl, [0.0, 1.0, 22.0], texturePolHead, texturePolBody, texturePolArms, texturePolLegs);
-    dog = new Dog(gl,[1.0, 0.5, 22.0],textureDogLegs,textureDogBody,textureDogLegs,textureDogLegs);
-    coin.push(new Coin(gl, [0.0, 1.2, 0.0],textureCoin, [0.2, 0.2, 0.05]));
-    coin.push(new Coin(gl, [0.0, 1.2, 2.0],textureCoin, [0.2, 0.2, 0.05]));
-    coin.push(new Coin(gl, [0.0, 1.2, 4.0],textureCoin, [0.2, 0.2, 0.05]));
+    pl = new Player(gl, [0.0, 1.0, 0.0],textureHair, textureBody, textureArms, textureLegs);
+    police = new Police(gl, [0.0, 1.0, 3.0], texturePolHead, texturePolBody, texturePolArms, texturePolLegs);
+    dog = new Dog(gl,[1.0, 0.5, 3.0],textureDogLegs,textureDogBody,textureDogLegs,textureDogLegs);
+    for(var i=0;i<40;i++){
+        let z = Math.random()*60 + 20;
+        if(i%3 == 0) coin.push(new Coin(gl, [-2.2, 1.2, -z],textureCoin, [0.2, 0.2, 0.05]));
+        if(i%3 == 1) coin.push(new Coin(gl, [ 0.0, 1.2, -z],textureCoin, [0.2, 0.2, 0.05]));
+        if(i%3 == 2) coin.push(new Coin(gl, [ 2.2, 1.2, -z],textureCoin, [0.2, 0.2, 0.05]));
+    }
+    for(var i=0;i<50;i++){
+        let z = Math.random()*60 + 80;
+        if(i%3 == 0) coin.push(new Coin(gl, [-2.2, 10.5, -z],textureCoin, [0.2, 0.2, 0.05]));
+        if(i%3 == 1) coin.push(new Coin(gl, [ 0.0, 10.5, -z],textureCoin, [0.2, 0.2, 0.05]));
+        if(i%3 == 2) coin.push(new Coin(gl, [ 2.2, 10.5, -z],textureCoin, [0.2, 0.2, 0.05]));
+    }
+
     track.push(new Track(gl, [-3.0, 0.0, 10.0], textureTrack));
-    track.push(new Track(gl, [  0.0, 0.0, 10.0], textureTrack));
+    track.push(new Track(gl, [ 0.0, 0.0, 10.0], textureTrack));
     track.push(new Track(gl, [ 3.0, 0.0, 10.0], textureTrack));
     wall.push(new Wall(gl, [-4.5, 2.5, 10.0], textureWall));
     wall.push(new Wall(gl, [ 4.5, 2.5, 10.0], textureWall));
-    barricade1 = new Cube(gl, [2.7, 0.5, -50],textureBarricade1, [1.0, 0.6, 0.05]);
+    barricade1 = new Cube(gl, [-2.7, 0.5, -50],textureBarricade1, [1.0, 0.6, 0.05]);
     barricade2 = new Cube(gl, [2.9, 0.5, -35],textureBarricade2, [2.0, 1.8, 0.1]);
-    train.push(new Train(gl, [ 2.5, 1.0, 0.0],textureTrain1, [1.5, 1.5, 15.0]));
-    train.push(new Train(gl, [-2.5, 1.0, 0.0],textureTrain2, [1.5, 1.5, 15.0]));
-    // train.push(new Train(gl, [ 2.5, 1.0, -10.0],textureTrain2, [1.5, 1.5, 15.0]));
-    // train.push(new Train(gl, [-2.5, 1.0, -10.0],textureTrain1, [1.5, 1.5, 15.0]));
-    train.push(new Train(gl, [0, 1.0, -20.0],textureTrain1, [1.5, 1.5, 15.0]));
-    jetpack = new Jetpack(gl, [0.0, 1.0, -100.0],textureJet1, textureJet2);
-    boots = new Boot(gl, [0.0, 1.0, 10.0],textureJet2, textureJet2);
+    train.push(new Train(gl, [ 2.5, 1.0, -100.0],textureTrain1, [1.5, 1.5, 15.0]));
+    train.push(new Train(gl, [-2.5, 1.0, -100.0],textureTrain2, [1.5, 1.5, 15.0]));
+    // train.push(new Train(gl, [0, 1.0, -130.0],textureTrain1, [1.5, 1.5, 15.0]));
+    jetpack = new Jetpack(gl, [0.0, 1.0, -70.0],textureJet1, textureJet2);
+    boots = new Boot(gl, [2.3, 1.0, -60.0],textureJet2, textureJet2);
     var then = 0;
 
     // Draw the scene repeatedly
     function render(now) {
-        if(pl.pos[2] + 10 < barricade1.pos[2]){
+        if(gameOver == 1){  
+            document.getElementById("gameover").innerHTML = "GAME OVER";
+        }
+        if(pl.jetpack == 1){
+            document.getElementById("jetpack").innerHTML = "JETPACK ON";
+        }
+        else{
+            document.getElementById("jetpack").innerHTML = "";
+        }
+        if(pl.bootTime > 0){
+            document.getElementById("boots").innerHTML = "BOOTS ON";
+        }
+        else{
+            document.getElementById("boots").innerHTML = "";
+        }
+        document.getElementById("coins").innerHTML = "Coins : "+ coins;
+        document.getElementById("score").innerHTML = "Score : "+ score;
+        for(var i=0;i<coin.length;i++){
+            if(pl.pos[2] + 10 < coin[i].pos[2]){
+                coin[i].pos[2] -= 100.0;
+            }
+        }
+        if(pl.pos[2] + 20 < barricade1.pos[2]){
             barricade1.pos[2]-=100;
+            let x = Math.random()*3;
+            if(x<1) barricade1.pos[0] = -2.7;
+            else if(x<2) barricade1.pos[0] = 0.0;
+            else barricade1.pos[0] = 2.7;
         }
         if(pl.pos[2] + 10 < barricade2.pos[2]){
             barricade2.pos[2]-=100;
+            let x = Math.random()*3;
+            if(x<1) barricade2.pos[0] = -2.9;
+            else if(x<2) barricade2.pos[0] = 0.0;
+            else barricade2.pos[0] = 2.9;
+        }
+        if(pl.pos[2] + 20 < train[0].pos[2]){
+            let z = Math.random()*40 + 100;
+            let x = Math.random()*3;
+            train[0].pos[2] -= z;
+            if(x<1) train[0].pos[0] = -2.5;
+            else if(x<2) train[0].pos[0] = 0.0;
+            else train[0].pos[0] = 2.5;    
+        }
+        if(pl.pos[2] + 20 < train[1].pos[2]){
+            let z = Math.random()*40 + 100;
+            let x = Math.random()*3;
+            train[1].pos[2] -= z;
+            if(x<1) train[1].pos[0] = -2.5;
+            else if(x<2) train[1].pos[0] = 0.0;
+            else train[1].pos[0] = 2.5;    
         }
         police.bt(pl.pos[0] - police.pos[0]);
         police.bt2(pl.pos[2] + 1 - police.pos[2]);
@@ -152,8 +205,10 @@ function main() {
             }
         })
         checkColission();
-        if(!gameOver)
+        if(!gameOver){
             pl.move();
+            score += 1;
+        }
         drawScene(gl, programInfo, deltaTime);
         requestAnimationFrame(render);
     }
@@ -203,40 +258,33 @@ function checkColission(){
     }
     for(var i=0;i<coin.length;i++){
         if(detectColission(pl.pos, [0.5, 0.6, 0.5], coin[i].pos, [0.2, 0.2, 0.2])){
-            coin[i].pos[2] += 100.0;
+            coin[i].pos[2] -= 100.0;
             coins+=1;
             console.log(coins);
             break;
         }
-    } 
+    }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], jetpack.pos, [0.3, 0,3, 0.1])){
         pl.jetpack = 1;
         pl.maxHeight = 1.0;
         pl.jetTime = 1;
         pl.jump = 1;
-        jetpack.pos[2] -= 200.0;
-        for(var i = 0;i<jetpack.obj.length;i++)
-            jetpack.obj[i].pos[2] -= 200.0;
     }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], boots.pos, [0.3, 0.3, 0.1])){
         pl.maxHeight = 0.7;
         pl.bootTime = 1;
-        boots.pos[2] -= 100.0;
-        for(var i = 0;i<boots.obj.length;i++)
-            boots.obj[i].pos[2] -= 100.0;
     }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], barricade1.pos, [1.0, 0.6, 0.05])){
-        barricade1.pos[2] -= 100.0;
         if(pl.slowTime > 0)
             gameOver = 1;
         pl.strideFor = 0.1;
         pl.slowTime = 1;
+        barricade1.pos[2] -= 100.0;
     }
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], barricade2.pos, [2.0, 1.8, 0.1])){
         pl.slowTime = 1;
         gameOver = 1;
     }
-
 }
 
 function detectColission(obj1, dim1, obj2, dim2){
@@ -256,7 +304,7 @@ function drawScene(gl, programInfo, deltaTime) {
     const fieldOfView = 45 * Math.PI / 180;   // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const zNear = 0.1;
-    const zFar = 100.0;
+    const zFar = 80.0;
     const projectionMatrix = mat4.create();
     var viewMatrix = mat4.create();
     var viewProjectionMatrix = mat4.create();

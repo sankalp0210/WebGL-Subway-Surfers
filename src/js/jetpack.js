@@ -10,7 +10,6 @@ let Jetpack =  class {
     };
     move(val){
         if(this.pos[2] > val){
-            this.pos[2] -= 100;
             for (var i=0;i<this.obj.length;i++){
                 this.obj[i].pos[2] -= 100;
             }

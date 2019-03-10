@@ -4,10 +4,21 @@
         <meta charset="utf-8">
         <title>WebGL Demo</title>
         <link rel="stylesheet" href="../webgl.css" type="text/css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+        <!-- jQuery library -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+        <!-- Latest compiled JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
     </head>
     <body>
         <div align = 'center'>
-            <canvas id="glcanvas" width="800" height="600"></canvas>
+            <h1 id="gameover"> </h1>
+            <canvas id="glcanvas" width="800" height="400"></canvas>
+            <h1 id="score">Score: </h1>
+            <h1 id="coins">Coins: </h1>
+            <h1 id="jetpack"></h1>
+            <h1 id="boots"> </h1>
         </div>
     </body>
     <script src="./js/mousetrap.min.js"></script>
