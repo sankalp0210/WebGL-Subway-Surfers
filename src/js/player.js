@@ -32,14 +32,16 @@ let Player =  class {
         this.obj.push(new Cube(gl, [pos[0],pos[1]+0.4,pos[2]],textureHair, [0.3, 0.3, 0.3]));
     };
     move(){
-        this.obj[1].rotation += 0.1*this.factor;
-        this.obj[2].rotation -= 0.1*this.factor;
-        this.obj[3].rotation -= 0.1*this.factor;
-        this.obj[4].rotation += 0.1*this.factor;
-        if(this.obj[1].rotation > 1.0)
+        if(this.jetpack == 0){
+            this.obj[1].rotation += 0.1*this.factor;
+            this.obj[2].rotation -= 0.1*this.factor;
+            this.obj[3].rotation -= 0.1*this.factor;
+            this.obj[4].rotation += 0.1*this.factor;
+            if(this.obj[1].rotation > 1.0)
             this.factor = -1;
-        if(this.obj[1].rotation < -1.0)
+            if(this.obj[1].rotation < -1.0)
             this.factor = 1;
+        }
 
         if(this.slowTime > 0)
             this.slowTime += 1;

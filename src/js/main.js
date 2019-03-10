@@ -47,6 +47,15 @@ function main() {
     textureBody = loadTexture(gl, 'assets/body.jpg');
     textureArms = loadTexture(gl, 'assets/skin.png');
     textureLegs = loadTexture(gl, 'assets/legs.png');
+    // texture for police
+    texturePolBody = loadTexture(gl, 'assets/policeBody.png');
+    texturePolHead = loadTexture(gl, 'assets/skin.png');
+    texturePolArms = loadTexture(gl, 'assets/skin.png');
+    texturePolLegs = loadTexture(gl, 'assets/policeLegs.jpg');
+    // texture for dog
+    textureDogBody = loadTexture(gl, 'assets/dogBody.jpg');
+    textureDogLegs = loadTexture(gl, 'assets/dogLegs.jpg');
+
     textureTrack = loadTexture(gl, 'assets/track2.jpeg');
     textureWall = loadTexture(gl, 'assets/wall3.jpg');
     texturePlayer = loadTexture(gl, 'assets/img.png');
@@ -58,6 +67,8 @@ function main() {
     textureBarricade1 = loadTexture(gl, 'assets/barricade1.jpeg');
     textureBarricade2 = loadTexture(gl, 'assets/barricade2.png');
     pl = new Player(gl, [0.0, 1.0, 20.0],textureHair, textureBody, textureArms, textureLegs);
+    police = new Police(gl, [0.0, 1.0, 22.0], texturePolHead, texturePolBody, texturePolArms, texturePolLegs);
+    dog = new Dog(gl,[1.0, 0.5, 22.0],textureDogLegs,textureDogBody,textureDogLegs,textureDogLegs);
     coin.push(new Coin(gl, [0.0, 1.2, 0.0],textureCoin, [0.2, 0.2, 0.05]));
     coin.push(new Coin(gl, [0.0, 1.2, 2.0],textureCoin, [0.2, 0.2, 0.05]));
     coin.push(new Coin(gl, [0.0, 1.2, 4.0],textureCoin, [0.2, 0.2, 0.05]));
@@ -75,20 +86,22 @@ function main() {
     train.push(new Train(gl, [0, 1.0, -20.0],textureTrain1, [1.5, 1.5, 15.0]));
     jetpack = new Jetpack(gl, [0.0, 1.0, -100.0],textureJet1, textureJet2);
     boots = new Boot(gl, [0.0, 1.0, 10.0],textureJet2, textureJet2);
-    dog = new Dog(gl, [1.0, 1.0, 22.0],texturePlayer);
-    police = new Police(gl, [0.0, 1.0, 22.0],texturePlayer);
     var then = 0;
 
     // Draw the scene repeatedly
     function render(now) {
-        if(pl.pos[2] + 10 < barricade1.pos[2])
+        if(pl.pos[2] + 10 < barricade1.pos[2]){
             barricade1.pos[2]-=100;
-        if(pl.pos[2] + 10 < barricade2.pos[2])
+        }
+        if(pl.pos[2] + 10 < barricade2.pos[2]){
             barricade2.pos[2]-=100;
+        }
         police.bt(pl.pos[0] - police.pos[0]);
         police.bt2(pl.pos[2] + 1 - police.pos[2]);
         dog.bt(pl.pos[0] + 0.5 - dog.pos[0]);
-        dog.bt2(pl.pos[2] + 1 - dog.pos[2])
+        dog.bt2(pl.pos[2] + 1 - dog.pos[2]);
+        police.move();
+        dog.move();
         track[0].move(pl.pos[2]+10);
         track[1].move(pl.pos[2]+10);
         track[2].move(pl.pos[2]+10);
@@ -195,7 +208,7 @@ function checkColission(){
             console.log(coins);
             break;
         }
-    }
+    } 
     if(detectColission(pl.pos, [0.5, 0.5, 0.2], jetpack.pos, [0.3, 0,3, 0.1])){
         pl.jetpack = 1;
         pl.maxHeight = 1.0;
@@ -249,7 +262,7 @@ function drawScene(gl, programInfo, deltaTime) {
     var viewProjectionMatrix = mat4.create();
 
     mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
-    mat4.translate(viewMatrix, viewMatrix, [0, pl.pos[1] + 1.5, pl.pos[2] + 5]);
+    mat4.translate(viewMatrix, viewMatrix, [0, pl.pos[1] + 1.5, pl.pos[2] + 7]);
     var cameraPosition = [
         viewMatrix[12],
         viewMatrix[13],
@@ -273,9 +286,9 @@ function drawScene(gl, programInfo, deltaTime) {
     pl.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     jetpack.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     boots.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
-    // dog.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+    dog.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     if(pl.slowTime > 0){
-        // police.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
+        police.draw(gl, viewProjectionMatrix, programInfo, deltaTime);
     }
 }
 
